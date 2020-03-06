@@ -32,6 +32,9 @@
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
+#include <dht.h>
+#define DHT11_PIN 3
+dht DHT;
 
 // LoRaWAN NwkSKey, network session key
 // This is the default Semtech key, which is used by the early prototype TTN
@@ -53,12 +56,12 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t mydata[] = "Hello, world!";
+static uint8_t mydata[] = "eerste";
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 60;
+const unsigned TX_INTERVAL = 300;
 
 // Pin mapping
 const lmic_pinmap lmic_pins = {
@@ -133,6 +136,7 @@ void onEvent (ev_t ev) {
     }
 }
 
+
 void do_send(osjob_t* j){
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
@@ -155,6 +159,7 @@ void setup() {
     digitalWrite(VCC_ENABLE, HIGH);
     delay(1000);
     #endif
+
 
     // LMIC init
     os_init();
@@ -222,5 +227,10 @@ void setup() {
 }
 
 void loop() {
+    DHT.read11(DHT11_PIN);
+    String s = String(DHT.humidity, 1) + ',' + String(DHT.temperature, 1);
+    s.getBytes(mydata, s.length());
+//    Serial.println(String(mydata));
+    Serial.println(s);
     os_runloop_once();
 }
