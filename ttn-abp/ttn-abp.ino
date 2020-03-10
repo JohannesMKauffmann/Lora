@@ -56,7 +56,7 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t mydata[] = "eerste";
+static uint8_t bytesToSend[9];
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -142,8 +142,10 @@ void do_send(osjob_t* j){
     if (LMIC.opmode & OP_TXRXPEND) {
         Serial.println(F("OP_TXRXPEND, not sending"));
     } else {
+        // Read sensor data and write to bytesToSend
+        updateSensorData();
         // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+        LMIC_setTxData2(1, bytesToSend, sizeof(bytesToSend)-1, 0);
         Serial.println(F("Packet queued"));
     }
     // Next TX is scheduled after TX_COMPLETE event.
@@ -226,11 +228,15 @@ void setup() {
     do_send(&sendjob);
 }
 
-void loop() {
-    DHT.read11(DHT11_PIN);
-    String s = String(DHT.humidity, 1) + ',' + String(DHT.temperature, 1);
-    s.getBytes(mydata, s.length());
-//    Serial.println(String(mydata));
-    Serial.println(s);
+void updateSensorData()
+{
+	DHT.read11(DHT11_PIN);
+	String data = String(DHT.humidity, 1) + ',' + String(DHT.temperature, 1);
+	Serial.println(data);
+	data.getBytes(bytesToSend, data.length());
+}
+
+void loop()
+{
     os_runloop_once();
 }
