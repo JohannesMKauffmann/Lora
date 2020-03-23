@@ -5,6 +5,7 @@ import requests
 
 app_id = "co2_sensor_stenden"
 access_key = "ttn-account-v2.J5ws5KGhK9jVP5p56HfG1VyLka8PecrVTtIsam6MpWA"
+print('started sript!')
 
 
 def uplink_callback(msg, client):
@@ -20,6 +21,7 @@ mqtt_client.set_uplink_callback(uplink_callback)
 mqtt_client.connect()
 # ------END MQTT TTN PART------ #
 
+
 def add_meting(nodeID, temperature, humidity, datetime):
     data = {'nodeID': nodeID, 'temperature': temperature, 'humidity': humidity, 'datetime': datetime}
     print(data)
@@ -29,7 +31,3 @@ def add_meting(nodeID, temperature, humidity, datetime):
 
 while True:
     pass
-
-
-
-
