@@ -1,4 +1,5 @@
 import ttn
+import requests
 
 # ------BEGIN MQTT TTN PART------ #
 
@@ -21,10 +22,9 @@ mqtt_client.connect()
 
 def add_meting(nodeID, temperature, humidity, datetime):
     data = {'nodeID': nodeID, 'temperature': temperature, 'humidity': humidity, 'datetime': datetime}
+    print(data)
     r = requests.post("https://lora2d.herokuapp.com/addmeasurement", json=data)
     print(r.status_code)
-    data = r.json()
-    print("added measurement with ID:" + str(data['measurement_id']))
 
 
 while True:
