@@ -56,7 +56,7 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t bytesToSend[9];
+static uint8_t bytesToSend[3];
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -228,15 +228,26 @@ void setup() {
     do_send(&sendjob);
 }
 
-void updateSensorData()
-{
+void updateSensorData() {
 	DHT.read11(DHT11_PIN);
-	String data = String(DHT.humidity, 1) + ',' + String(DHT.temperature, 1);
-	Serial.println(data);
-	data.getBytes(bytesToSend, data.length());
+	float hum = DHT.humidity;
+	float temp = DHT.temperature;
+	uint8_t hum_t = (uint8_t) hum;						// whole part of the float
+	uint8_t temp_t = (uint8_t) temp;
+	String hum_frac = String(hum - hum_t, 1);			// extract the fractional part using substring
+	String temp_frac = String(temp - temp_t, 1);
+	uint8_t hum_f = hum_frac.substring(2).toInt();
+	uint8_t temp_f = temp_frac.substring(2).toInt();
+	uint8_t com_f = ((uint8_t) (hum_f << 4)) | temp_f;	// combine both fraction parts in one byte
+	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
+	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
+	Serial.println("combinedFractional: " + String(com_f));
+	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
+	bytesToSend[0] = hum_t;
+	bytesToSend[1] = temp_t;
+	bytesToSend[2] = com_f;
 }
 
-void loop()
-{
+void loop() {
     os_runloop_once();
 }
