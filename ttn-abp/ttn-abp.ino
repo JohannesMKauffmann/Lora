@@ -245,7 +245,6 @@ void updateSensorData() {
 	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
 	bytesToSend[0] = hum_t;
 	bytesToSend[1] = temp_t;
-	bytesToSend[2] = com_f;
 }
 
 void loop() {
