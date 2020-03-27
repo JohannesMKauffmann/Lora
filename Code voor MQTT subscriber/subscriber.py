@@ -5,7 +5,7 @@ import requests
 
 app_id = "co2_sensor_stenden"
 access_key = "ttn-account-v2.J5ws5KGhK9jVP5p56HfG1VyLka8PecrVTtIsam6MpWA"
-print('started sript!')
+print('started MQTT TTN subscriber!')
 
 
 def uplink_callback(msg, client):
