@@ -238,11 +238,11 @@ void updateSensorData() {
 	String temp_frac = String(temp - temp_t, 1);
 	uint8_t hum_f = hum_frac.substring(2).toInt();
 	uint8_t temp_f = temp_frac.substring(2).toInt();
-	uint8_t com_f = ((uint8_t) (hum_f << 4)) | temp_f;	// combine both fraction parts in one byte
-	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
-	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
-	Serial.println("combinedFractional: " + String(com_f));
-	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
+	bytesToSend[2] = ((uint8_t) (hum_f << 4)) | temp_f;	// combine both fraction parts in one byte
+//	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
+//	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
+//	Serial.println("combinedFractional: " + String((uint8_t) bytesToSend[2]));
+//	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
 	bytesToSend[0] = hum_t;
 	bytesToSend[1] = temp_t;
 }
