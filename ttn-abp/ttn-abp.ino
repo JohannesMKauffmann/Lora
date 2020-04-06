@@ -39,15 +39,15 @@ dht DHT;
 // LoRaWAN NwkSKey, network session key
 // This is the default Semtech key, which is used by the early prototype TTN
 // network.
-static const PROGMEM u1_t NWKSKEY[16] = { 0xF1, 0x46, 0xED, 0xDE, 0xE3, 0x11, 0x40, 0xA1, 0x3C, 0x49, 0x3A, 0x92, 0xFA, 0x70, 0xCA, 0x95 };
+static const PROGMEM u1_t NWKSKEY[16] = { 0x20, 0x8C, 0xEF, 0x9A, 0x3C, 0xBB, 0xB4, 0x9B, 0x08, 0x45, 0x4C, 0x5E, 0xAF, 0x8C, 0x55, 0xEA };
 
 // LoRaWAN AppSKey, application session key
 // This is the default Semtech key, which is used by the early prototype TTN
 // network.
-static const u1_t PROGMEM APPSKEY[16] = { 0xBF, 0x02, 0x80, 0xBB, 0x7F, 0x6C, 0xAD, 0x40, 0x7D, 0xD8, 0x17, 0x71, 0x97, 0x27, 0x26, 0xF9 };
+static const u1_t PROGMEM APPSKEY[16] = { 0xBC, 0x69, 0xC6, 0x0B, 0xF7, 0x48, 0xA1, 0x4C, 0x29, 0x76, 0x1C, 0xD8, 0xF5, 0xE4, 0x3D, 0x41 };
 
 // LoRaWAN end-device address (DevAddr)
-static const u4_t DEVADDR = 0x260116B3 ; // <-- Change this address for every node!
+static const u4_t DEVADDR = 0x2601143D; // <-- Change this address for every node!
 
 // These callbacks are only used in over-the-air activation, so they are
 // left empty here (we cannot leave them out completely unless
@@ -56,7 +56,7 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t bytesToSend[3];
+static uint8_t bytesToSend[4];
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -195,14 +195,16 @@ void setup() {
     // configures the minimal channel set.
     // NA-US channels 0-71 are configured automatically
     LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
-    LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
-    LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
+    LMIC_disableChannel(1);
+	LMIC_disableChannel(2);
+//    LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
+//    LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+//    LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+//    LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+//    LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+//    LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+//    LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+//    LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
     // TTN defines an additional channel at 869.525Mhz using SF9 for class B
     // devices' ping slots. LMIC does not have an easy way to define set this
     // frequency and support for class B is spotty and untested, so this
@@ -238,13 +240,16 @@ void updateSensorData() {
 	String temp_frac = String(temp - temp_t, 1);
 	uint8_t hum_f = hum_frac.substring(2).toInt();
 	uint8_t temp_f = temp_frac.substring(2).toInt();
-	bytesToSend[2] = ((uint8_t) (hum_f << 4)) | temp_f;	// combine both fraction parts in one byte
-//	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
-//	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
-//	Serial.println("combinedFractional: " + String((uint8_t) bytesToSend[2]));
-//	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
+	uint8_t com_f = ((uint8_t) (hum_f << 4)) | ((uint8_t) temp_f);	// combine both fraction parts in one byte
+	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
+	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
+	Serial.println("combinedFractional: " + String((uint8_t) bytesToSend[2]));
+	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
+//	Serial.println(String((uint8_t) bytesToSend[0]) + "," + String((uint8_t) bytesToSend[1]) + "," + String((uint8_t) bytesToSend[2]));
 	bytesToSend[0] = hum_t;
 	bytesToSend[1] = temp_t;
+	bytesToSend[2] = com_f;
+	//Serial.println(String((uint8_t) bytesToSend[2]));
 }
 
 void loop() {
