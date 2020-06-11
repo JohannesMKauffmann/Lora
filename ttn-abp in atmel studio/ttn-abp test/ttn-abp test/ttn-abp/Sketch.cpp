@@ -1,3 +1,8 @@
+﻿/*Begining of Auto generated code by Atmel studio */
+#include <Arduino.h>
+
+/*End of auto generated code by Atmel studio */
+
 /*******************************************************************************
  * Copyright (c) 2015 Thomas Telkamp and Matthijs Kooijman
  *
@@ -34,8 +39,18 @@
 #include <hal/hal.h>
 #include <SPI.h>
 #include <dht.h>
+//Beginning of Auto generated function prototypes by Atmel Studio
+//void os_getArtEui(u1_t* buf);
+//void os_getDevEui(u1_t* buf);
+//void os_getDevKey(u1_t* buf);
+//void onEvent(ev_t ev);
+//void do_send(osjob_t* j);
+//void updateSensorData();
+//End of Auto generated function prototypes by Atmel Studio
+
+
 #define DHT11_PIN 3
-dht DHT;
+//dht DHT;
 
 // LoRaWAN NwkSKey, network session key
 // This is the default Semtech key, which is used by the early prototype TTN
@@ -57,7 +72,8 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t bytesToSend[4];
+//static uint8_t bytesToSend[4];
+static uint8_t mydata[] = "hello world!";
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -71,6 +87,43 @@ const lmic_pinmap lmic_pins = {
     .rst = 9,
     .dio = {2, 6, 7},
 };
+
+/*void updateSensorData() {
+	DHT.read11(DHT11_PIN);
+	float hum = DHT.humidity;
+	float temp = DHT.temperature;
+	uint8_t hum_t = (uint8_t) hum;						// whole part of the float
+	uint8_t temp_t = (uint8_t) temp;
+	String hum_frac = String(hum - hum_t, 1);			// extract the fractional part using substring
+	String temp_frac = String(temp - temp_t, 1);
+	uint8_t hum_f = hum_frac.substring(2).toInt();
+	uint8_t temp_f = temp_frac.substring(2).toInt();
+	uint8_t com_f = ((uint8_t) (hum_f << 4)) | ((uint8_t) temp_f);	// combine both fraction parts in one byte
+	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
+	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
+	Serial.println("combinedFractional: " + String((uint8_t) bytesToSend[2]));
+	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
+	//	Serial.println(String((uint8_t) bytesToSend[0]) + "," + String((uint8_t) bytesToSend[1]) + "," + String((uint8_t) bytesToSend[2]));
+	bytesToSend[0] = hum_t;
+	bytesToSend[1] = temp_t;
+	bytesToSend[2] = com_f;
+	//Serial.println(String((uint8_t) bytesToSend[2]));
+}*/
+
+void do_send(osjob_t* j){
+	// Check if there is not a current TX/RX job running
+	if (LMIC.opmode & OP_TXRXPEND) {
+		Serial.println(F("OP_TXRXPEND, not sending"));
+		} else {
+		// Read sensor data and write to bytesToSend
+		//updateSensorData();
+		// Prepare upstream data transmission at the next possible time.
+		//LMIC_setTxData2(1, bytesToSend, sizeof(bytesToSend)-1, 0);
+		LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+		Serial.println(F("Packet queued"));
+	}
+	// Next TX is scheduled after TX_COMPLETE event.
+}
 
 void onEvent (ev_t ev) {
     Serial.print(os_getTime());
@@ -137,20 +190,6 @@ void onEvent (ev_t ev) {
     }
 }
 
-
-void do_send(osjob_t* j){
-    // Check if there is not a current TX/RX job running
-    if (LMIC.opmode & OP_TXRXPEND) {
-        Serial.println(F("OP_TXRXPEND, not sending"));
-    } else {
-        // Read sensor data and write to bytesToSend
-        updateSensorData();
-        // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, bytesToSend, sizeof(bytesToSend)-1, 0);
-        Serial.println(F("Packet queued"));
-    }
-    // Next TX is scheduled after TX_COMPLETE event.
-}
 
 void setup() {
     Serial.begin(115200);
@@ -231,27 +270,6 @@ void setup() {
     do_send(&sendjob);
 }
 
-void updateSensorData() {
-	DHT.read11(DHT11_PIN);
-	float hum = DHT.humidity;
-	float temp = DHT.temperature;
-	uint8_t hum_t = (uint8_t) hum;						// whole part of the float
-	uint8_t temp_t = (uint8_t) temp;
-	String hum_frac = String(hum - hum_t, 1);			// extract the fractional part using substring
-	String temp_frac = String(temp - temp_t, 1);
-	uint8_t hum_f = hum_frac.substring(2).toInt();
-	uint8_t temp_f = temp_frac.substring(2).toInt();
-	uint8_t com_f = ((uint8_t) (hum_f << 4)) | ((uint8_t) temp_f);	// combine both fraction parts in one byte
-	Serial.println(String("whole: ") + String(hum_t) + String(temp_t));
-	Serial.println("fractional: " + String(hum_f) + ", " +  String(temp_f));
-	Serial.println("combinedFractional: " + String((uint8_t) bytesToSend[2]));
-	Serial.println("actual: " + String(hum, 1) + String(temp, 1));
-//	Serial.println(String((uint8_t) bytesToSend[0]) + "," + String((uint8_t) bytesToSend[1]) + "," + String((uint8_t) bytesToSend[2]));
-	bytesToSend[0] = hum_t;
-	bytesToSend[1] = temp_t;
-	bytesToSend[2] = com_f;
-	//Serial.println(String((uint8_t) bytesToSend[2]));
-}
 
 void loop() {
     os_runloop_once();
