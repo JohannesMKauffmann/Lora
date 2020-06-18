@@ -18,8 +18,16 @@ function Decoder(bytes, port) {
 	var hum_string = bytes[0] + "." + hum_f.toString();
 	var temp_string = bytes[1] + "." + temp_f.toString();
 	
+	var co2_msb = bytes[3] << 8; 			// shift 8 bits left, to make a 16 bit number which we can use later
+	var co2 = (co2_msb | bytes[4]);			// bitwise OR a 16 bit number with 8 bits number, "glue" them into each other
+	
+	var tvoc_msb = bytes[5] << 8;
+	var tvoc = (tvoc_msb | bytes[6]);
+	
 	data.humidity = parseFloat(hum_string);
 	data.temperature = parseFloat(temp_string);
+	data.co2 = co2;
+	data.tvoc = tvoc;
 	
 	return data;
 }
