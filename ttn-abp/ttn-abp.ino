@@ -68,7 +68,7 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 60;
+const unsigned TX_INTERVAL = 30;
 
 // Pin mapping
 const lmic_pinmap lmic_pins = {
@@ -265,16 +265,20 @@ void updateSensorData() {
 		Serial.println("is available");
 		mySensor.readAlgorithmResults();
 		uint16_t CO2 = mySensor.getCO2();
+    Serial.println(CO2);
 		uint8_t CO2_MSB = (uint8_t)(CO2 >> 8);
 		uint8_t CO2_LSB = (uint8_t)(CO2 & 0x0F);
 
 		uint16_t tVOC = mySensor.getTVOC();
+    Serial.println(tVOC);
 		uint8_t tVOC_MSB = (uint8_t)(tVOC >> 8);
 		uint8_t tVOC_LSB = (uint8_t)(tVOC & 0x0F);
 		bytesToSend[3] = CO2_MSB;
 		bytesToSend[4] = CO2_LSB;
 		bytesToSend[5] = tVOC_MSB;
 		bytesToSend[6] = tVOC_LSB;
+	} else {
+    Serial.println("data is not available!");
 	}
 }
 
