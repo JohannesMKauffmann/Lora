@@ -29,12 +29,18 @@
  *
  *******************************************************************************/
 
+#include <SPI.h>
+#include <Wire.h>
 #include <lmic.h>
 #include <hal/hal.h>
-#include <SPI.h>
 #include <dht.h>
+#include "SparkFunCCS811.h"
+
 #define DHT11_PIN 3
+#define CCS811_ADDR 0x5B
+
 dht DHT;
+CCS811 mySensor(CCS811_ADDR);
 
 // LoRaWAN NwkSKey, network session key
 // This is the default Semtech key, which is used by the early prototype TTN
@@ -56,7 +62,7 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
-static uint8_t bytesToSend[4];
+static uint8_t bytesToSend[8];
 static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
@@ -155,13 +161,13 @@ void setup() {
     Serial.begin(115200);
     Serial.println(F("Starting"));
 
-    #ifdef VCC_ENABLE
-    // For Pinoccio Scout boards
-    pinMode(VCC_ENABLE, OUTPUT);
-    digitalWrite(VCC_ENABLE, HIGH);
-    delay(1000);
-    #endif
+    Wire.begin();
 
+    if (mySensor.begin() == false)
+	{
+		Serial.print("CCS811 error. Please check wiring. Freezing...");
+	    while (1);
+	}
 
     // LMIC init
     os_init();
@@ -231,6 +237,7 @@ void setup() {
 }
 
 void updateSensorData() {
+	// read DHT11 sensor data
 	DHT.read11(DHT11_PIN);
 	float hum = DHT.humidity;
 	float temp = DHT.temperature;
@@ -250,6 +257,24 @@ void updateSensorData() {
 	bytesToSend[1] = temp_t;
 	bytesToSend[2] = com_f;
 	//Serial.println(String((uint8_t) bytesToSend[2]));
+
+	//read CCS811 sensor data
+	if (mySensor.dataAvailable())
+	{
+		Serial.println("is available");
+		mySensor.readAlgorithmResults();
+		uint16_t CO2 = mySensor.getCO2();
+		uint8_t CO2_MSB = (uint8_t)(CO2 >> 8);
+		uint8_t CO2_LSB = (uint8_t)(CO2 & 0x0F);
+
+		uint16_t tVOC = mySensor.getTVOC();
+		uint8_t tVOC_MSB = (uint8_t)(tVOC >> 8);
+		uint8_t tVOC_LSB = (uint8_t)(tVOC & 0x0F);
+		bytesToSend[3] = CO2_MSB;
+		bytesToSend[4] = CO2_LSB;
+		bytesToSend[5] = tVOC_MSB;
+		bytesToSend[6] = tVOC_LSB;
+	}
 }
 
 void loop() {
