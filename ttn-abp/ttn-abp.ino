@@ -267,12 +267,12 @@ void updateSensorData() {
 		uint16_t CO2 = mySensor.getCO2();
     Serial.println(CO2);
 		uint8_t CO2_MSB = (uint8_t)(CO2 >> 8);
-		uint8_t CO2_LSB = (uint8_t)(CO2 & 0x0F);
+		uint8_t CO2_LSB = (uint8_t)(CO2 & 0x00FF);
 
 		uint16_t tVOC = mySensor.getTVOC();
     Serial.println(tVOC);
 		uint8_t tVOC_MSB = (uint8_t)(tVOC >> 8);
-		uint8_t tVOC_LSB = (uint8_t)(tVOC & 0x0F);
+		uint8_t tVOC_LSB = (uint8_t)(tVOC & 0x00FF);
 		bytesToSend[3] = CO2_MSB;
 		bytesToSend[4] = CO2_LSB;
 		bytesToSend[5] = tVOC_MSB;
